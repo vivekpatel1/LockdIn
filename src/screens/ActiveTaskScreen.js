@@ -10,84 +10,71 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export default function ActiveTaskScreen({ route, navigation }) {
     const { task, initialDuration, taskId, initialRemainingTime } = route.params;
-    const { completeTask, updateTask, deleteTask } = useTasks();
+    const { tasks, updateTask, deleteTask } = useTasks();
+    const currentTask = tasks.find(t => t.id === taskId);
+
     // Use initialRemainingTime if available, otherwise calculate from duration
     const [secondsLeft, setSecondsLeft] = useState(initialRemainingTime !== undefined ? initialRemainingTime : initialDuration * 60);
     const [isActive, setIsActive] = useState(true);
+    // Track elapsed time in this specific session (seconds)
+    const [sessionElapsed, setSessionElapsed] = useState(0);
+
     // Use ref to track exiting state without triggering re-runs of effects
     const isExitingRef = React.useRef(false);
 
-    // Use useFocusEffect if available, or just standard useEffect with strict requirements
-    // Since we are not inside a router that guarantees useFocusEffect, we'll reinforce the existing useEffect
-    // but also add a listener for app state.
-
-    // Aggressive immersive mode enforcement
+    // Force immersive mode
     const enforceImmersiveMode = useCallback(async () => {
-        // 1. Expo Status Bar API
-        setStatusBarHidden(true, 'none');
-
-        // 2. React Native Status Bar API
-        if (RNStatusBar.setHidden) {
-            RNStatusBar.setHidden(true, 'none');
-            RNStatusBar.setTranslucent(true);
-            RNStatusBar.setBackgroundColor('transparent');
-        }
-
-        // 3. Expo Navigation Bar API
-        try {
-            await NavigationBar.setVisibilityAsync("hidden");
-            await NavigationBar.setBehaviorAsync('overlay-swipe');
-        } catch (e) {
-            // Ignore error
-        }
+        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        await setStatusBarHidden(true, 'none');
     }, []);
 
     useFocusEffect(
         useCallback(() => {
-            const lockAndHide = async () => {
-                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                await enforceImmersiveMode();
-            };
-            lockAndHide();
-
-            // Re-enforce periodically to fight against any system UI popups
-            const interval = setInterval(enforceImmersiveMode, 2000);
-
-            return () => {
-                ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                clearInterval(interval);
-            };
+            enforceImmersiveMode();
         }, [enforceImmersiveMode])
     );
 
-    // Also re-enforce when state that changes UI layout updates
     useEffect(() => {
-        enforceImmersiveMode();
-    }, [secondsLeft, enforceImmersiveMode]);
-
-
-
-    useEffect(() => {
-        // Intercept navigation attempts
-        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-            if (isExitingRef.current) {
-                return;
-            }
-            e.preventDefault();
-        });
-
-        // Block hardware back button on Android
         const backAction = () => {
-            return true;
+            if (isActive && !isExitingRef.current) {
+                return true; // Prevent default behavior (going back)
+            }
+            return false;
         };
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, [isActive]);
+
+    // Orientation & Visibility Management
+    useEffect(() => {
+        const setOrientationAndMode = async () => {
+            // Unlock first for clean slate
+            await ScreenOrientation.unlockAsync();
+            // Force Landscape
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+            // Hide UI
+            await enforceImmersiveMode();
+        };
+
+        setOrientationAndMode();
+
+        // Re-enforce periodically
+        const interval = setInterval(enforceImmersiveMode, 2000);
 
         return () => {
-            unsubscribe();
-            backHandler.remove();
+            // Reset to Portrait on unmount
+            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+            clearInterval(interval);
         };
-    }, [navigation]);
+    }, [enforceImmersiveMode]);
 
+    // Timer & Elapsed Logic
     useEffect(() => {
         let interval = null;
         if (isActive) {
@@ -96,6 +83,7 @@ export default function ActiveTaskScreen({ route, navigation }) {
                     if (prev <= 0) return 0;
                     return prev - 1;
                 });
+                setSessionElapsed(prev => prev + 1);
             }, 1000);
         }
         return () => clearInterval(interval);
@@ -110,30 +98,51 @@ export default function ActiveTaskScreen({ route, navigation }) {
     const handleDone = async () => {
         isExitingRef.current = true;
         try {
-            if (taskId) completeTask(taskId);
+            if (taskId) {
+                // Calculate total elapsed time across all sessions
+                const previousElapsed = currentTask?.elapsedSeconds || 0;
+                const totalElapsed = previousElapsed + sessionElapsed;
+                const timeSpentMinutes = Math.max(1, Math.round(totalElapsed / 60));
 
-            const newTask = {
-                id: Date.now().toString(),
-                name: task,
-                duration: initialDuration,
-                timestamp: new Date().toISOString(),
-                completed: true
-            };
-            const existingTasksJson = await AsyncStorage.getItem('lockdin_tasks');
-            const existingTasks = existingTasksJson ? JSON.parse(existingTasksJson) : [];
-            const updatedTasks = [newTask, ...existingTasks];
-            await AsyncStorage.setItem('lockdin_tasks', JSON.stringify(updatedTasks));
+                updateTask(taskId, {
+                    completed: true,
+                    timeSpent: timeSpentMinutes, // For display
+                    elapsedSeconds: totalElapsed, // For precision
+                    originalDuration: initialDuration,
+                    timestamp: new Date().toISOString() // Completion time
+                });
+            }
         } catch (error) {
             console.error("Failed to save task:", error);
         }
+
+        // Add a slight delay for a smoother transition
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     };
 
+
+
+
+
     const handlePause = async () => {
         isExitingRef.current = true;
-        // Allow nav
-        updateTask(taskId, { remainingTime: secondsLeft });
+
+        if (taskId) {
+            const previousElapsed = currentTask?.elapsedSeconds || 0;
+            const totalElapsed = previousElapsed + sessionElapsed;
+
+            updateTask(taskId, {
+                remainingTime: secondsLeft,
+                elapsedSeconds: totalElapsed
+            });
+        }
+
+        // Add a slight delay for a smoother transition
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     };

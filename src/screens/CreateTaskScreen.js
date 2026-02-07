@@ -1,9 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useTasks } from '../context/TaskContext';
 
 export default function CreateTaskScreen({ navigation }) {
+    // Lock to Portrait on Focus
+    useFocusEffect(
+        useCallback(() => {
+            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        }, [])
+    );
     const [task, setTask] = useState('');
     const [duration, setDuration] = useState('');
     const [taskList, setTaskList] = useState([]);

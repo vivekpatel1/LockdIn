@@ -3,7 +3,7 @@
         "name": "Lockdin",
         "slug": "lockdin",
         "version": "1.0.0",
-        "orientation": "portrait",
+        "orientation": "default",
         "userInterfaceStyle": "dark",
         "splash": {
             "image": "./assets/splash.png",

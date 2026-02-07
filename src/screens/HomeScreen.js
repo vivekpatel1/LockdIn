@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Animated, FlatList, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useTasks } from '../context/TaskContext';
 
 const { height } = Dimensions.get('window');
@@ -14,6 +15,13 @@ export default function HomeScreen({ navigation }) {
     const isFocused = useIsFocused();
     const [displayTitle, setDisplayTitle] = useState('LOCKDIN');
     const { tasks, deleteTask } = useTasks();
+
+    // Lock to Portrait on Focus
+    useFocusEffect(
+        useCallback(() => {
+            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        }, [])
+    );
 
     // Animation Values (Strict initial states)
     const fadeAnim = useRef(new Animated.Value(1)).current;      // Keep header visible for hand-off
@@ -108,6 +116,19 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.headerTitle}>{displayTitle}</Text>
                 </View>
                 <Text style={styles.headerSubtitle}>STAY FOCUSED.</Text>
+            </Animated.View>
+
+            {/* Settings Button */}
+            <Animated.View style={[
+                styles.settingsButtonContainer,
+                { opacity: fadeAnim }
+            ]}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('Settings')}
+                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                >
+                    <Ionicons name="settings-sharp" size={24} color="#333333" />
+                </TouchableOpacity>
             </Animated.View>
 
             {/* Main Content (Vertical Carousel) */}
@@ -219,6 +240,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 4,
+    },
+    settingsButtonContainer: {
+        position: 'absolute',
+        top: 50,
+        right: 30,
+        zIndex: 20,
     },
     mainContainer: {
         flex: 1,

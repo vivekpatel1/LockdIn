@@ -1,0 +1,52 @@
+LockdIn Development Changelog
+
+February 7, 2026
+Feature: Multi-Select, Bulk Delete, and UI Polish
+- Multi-Select Functionality: 
+  - Implemented a long-press gesture on tasks in both HistoryScreen and CalendarScreen to enter "Selection Mode".
+  - Users can now select multiple tasks at once.
+- Bulk Delete:
+  - Added a floating delete (trash can) button that appears during selection mode to permanently delete all selected tasks.
+- "Select All" Feature:
+  - Added a "SELECT ALL" text button to section headers.
+  - In CalendarScreen, this selects all tasks for a specific date.
+  - In HistoryScreen, this selects all of "Today's Wins".
+- Header Refinements:
+  - Added a subtle "X" cancel button to the header to easily exit selection mode.
+  - Kept header titles static ("HISTORY" / "WINS") during selection for a cleaner look, removing the dynamic "N Selected" text.
+  - Fixed vertical alignment of header elements.
+- UI/UX Polish:
+  - Improved the centering and conditional rendering of the checkmark icon vs. text in task items.
+  - Replaced the standard Switch in SettingsScreen with a custom, minimalist animated toggle to match the app's dark theme.
+
+February 5, 2026
+Feature: Wins Page & Data Precision
+- Wins Page Redesign:
+  - Moved the "Archive Wins" button to the bottom of the screen.
+  - Replaced the "Wins History" button with a minimalist calendar icon.
+- Swipe Gestures:
+  - Implemented "Swipe to Delete" functionality for archived tasks.
+- Data Precision:
+  - Updated task cards to display specific time spent in "Minutes and Seconds" (e.g., "5M 30S") instead of rounding to the nearest minute.
+- Maintenance:
+  - Investigated and resolved project startup issues related to dependencies.
+
+February 4, 2026
+Feature: Create Task UI & Animations
+- Create Task Screen Refinement:
+  - Redesigned inputs to place Task Name and Duration side-by-side for better flow.
+  - Added subtle animations to input fields.
+  - Moved the "Set tasks for the day" button to the top-right corner as a small actionable button.
+- Intro Animation:
+  - Reduced the delay in the lock intro animation to make the app launch feel snappier.
+
+February 3, 2026
+Project Inception & Core Setup
+- Project Initialization:
+  - Set up the React Native + Expo environment.
+  - Configured the project structure.
+- Design Concept:
+  - Verified the "LockdIn" identity: a strict, distraction-free, dark-mode-first productivity app.
+  - Core Philosophy: "No escape until done."
+- Initial Screens:
+  - Built the foundational HomeScreen (Task List) and CreateTaskScreen.

@@ -1,14 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Modal, TouchableWithoutFeedback, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import * as ScreenOrientation from 'expo-screen-orientation';
 // import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useTasks } from '../context/TaskContext';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const formatDuration = (seconds) => {
+    if (!seconds && seconds !== 0) return '0 MIN';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) return `${s}S`;
+    if (s === 0) return `${m}M`;
+    return `${m}M ${s}S`;
+};
+
 export default function HistoryScreen({ navigation }) {
-    const { tasks, deleteTask } = useTasks();
+    // Lock to Portrait on Focus
+    useFocusEffect(
+        useCallback(() => {
+            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        }, [])
+    );
+    const { tasks, deleteTask, deleteMultipleTasks } = useTasks();
     const [todaysTasks, setTodaysTasks] = useState([]);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedItems, setSelectedItems] = useState(new Set());
 
     const currentDate = new Date().toLocaleDateString('en-US', {
         weekday: 'long',
@@ -23,23 +45,11 @@ export default function HistoryScreen({ navigation }) {
 
         const filtered = tasks.filter(task => {
             if (!task.completed) return false;
-            // Check if completedAt exists (new tasks) or fallback to createdAt/timestamp logic if needed
-            // For now assuming existing logic or tasks have a date. 
-            // The previous code used 'timestamp' or check createdAt.
-            // Let's look at TaskContext. It has 'createdAt'. It doesn't seem to have 'completedAt' explicitly set in completeTask unless I missed it.
-            // Let's re-read TaskContext if needed. 
-            // In TaskContext: completeTask just sets completed: true. It doesn't add a timestamp.
-            // So we rely on createdAt for now, OR valid completion time. 
-            // The previous HistoryScreen filtered by 'timestamp'. 
-            // Let's just filter by completed status for now, and ideally we should verify if we need day filtering.
-            // The previous code: const taskDate = new Date(task.timestamp);
-            // TaskContext adds 'createdAt'.
-            // Let's filter completed tasks that were created today OR just all completed tasks if that's the intention of "Wins".
-            // The user said "WINS RECORDED TODAY".
+            // Check if completedAt exists (new tasks) or fallback to timestamp/createdAt
+            const dateStr = task.timestamp || task.createdAt;
+            if (!dateStr) return false;
 
-            // Let's assume completed tasks are today's wins for this simple app context, 
-            // or filter by createdAt if it's reliable.
-            const taskDate = new Date(task.createdAt);
+            const taskDate = new Date(dateStr);
             return taskDate >= startOfToday;
         });
         setTodaysTasks(filtered);
@@ -61,6 +71,70 @@ export default function HistoryScreen({ navigation }) {
         );
     };
 
+    const [selectedTask, setSelectedTask] = useState(null);
+
+    const toggleSelection = (id) => {
+        setSelectedItems(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+                if (newSet.size === 0) setSelectionMode(false);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    const handleTaskPress = (task) => {
+        if (selectionMode) {
+            toggleSelection(task.id);
+        } else {
+            setSelectedTask(task);
+        }
+    };
+
+    const handleLongPress = (task) => {
+        if (!selectionMode) {
+            setSelectionMode(true);
+            setSelectedItems(new Set([task.id]));
+        }
+    };
+
+    const handleBulkDelete = () => {
+        deleteMultipleTasks(Array.from(selectedItems));
+        setSelectionMode(false);
+        setSelectedItems(new Set());
+    };
+
+    const cancelSelection = () => {
+        setSelectionMode(false);
+        setSelectedItems(new Set());
+    };
+
+    const toggleSelectAll = () => {
+        const taskIds = todaysTasks.map(t => t.id);
+        const allSelected = taskIds.every(id => selectedItems.has(id));
+
+        setSelectedItems(prev => {
+            const newSet = new Set(prev);
+            if (allSelected) {
+                taskIds.forEach(id => newSet.delete(id));
+                if (newSet.size === 0) setSelectionMode(false);
+            } else {
+                taskIds.forEach(id => newSet.add(id));
+            }
+            return newSet;
+        });
+    };
+
+    const handleDeleteTask = () => {
+        if (selectedTask) {
+            deleteTask(selectedTask.id);
+            setSelectedTask(null);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar hidden />
@@ -68,29 +142,60 @@ export default function HistoryScreen({ navigation }) {
             {/* Header */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.headerTitle}>WINS</Text>
+                    <Text style={styles.headerTitle}>HISTORY</Text>
                     <Text style={styles.headerSubtitle}>{currentDate}</Text>
                 </View>
+                {selectionMode && (
+                    <TouchableOpacity onPress={cancelSelection} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.cancelButton}>
+                        <Feather name="x" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                )}
             </View>
 
             {/* Task List */}
             <ScrollView
+                style={{ flex: 1 }}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
                 {todaysTasks.length > 0 ? (
                     <View style={styles.taskList}>
-                        <Text style={styles.sectionTitle}>TODAY'S WINS</Text>
+                        <View style={styles.sectionHeaderRow}>
+                            <Text style={styles.sectionTitle}>TODAY'S WINS</Text>
+                            {selectionMode && (
+                                <TouchableOpacity onPress={toggleSelectAll}>
+                                    <Text style={styles.selectAllText}>SELECT ALL</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                         {todaysTasks.map((task) => (
-                            <View key={task.id} style={styles.taskItem}>
+                            <TouchableOpacity
+                                key={task.id}
+                                style={[
+                                    styles.taskItem,
+                                    selectedItems.has(task.id) && styles.selectedTaskItem
+                                ]}
+                                onPress={() => handleTaskPress(task)}
+                                onLongPress={() => handleLongPress(task)}
+                                delayLongPress={300}
+                            >
                                 <View style={styles.taskInfo}>
                                     <Text style={styles.taskNameText}>{task.name.toUpperCase()}</Text>
-                                    <Text style={styles.taskTimeText}>{task.duration} MIN</Text>
+                                    <Text style={styles.taskTimeText}>
+                                        {task.elapsedSeconds ? formatDuration(task.elapsedSeconds) : `${task.duration} MIN`}
+                                    </Text>
                                 </View>
-                                <View style={styles.checkmarkIcon}>
-                                    <Text style={styles.checkmarkText}>✓</Text>
+                                <View style={[
+                                    styles.checkmarkIcon,
+                                    selectedItems.has(task.id) && styles.selectedCheckmark
+                                ]}>
+                                    {selectedItems.has(task.id) ? (
+                                        <Feather name="check" size={14} color="#000" />
+                                    ) : (
+                                        <Text style={styles.checkmarkText}>✓</Text>
+                                    )}
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 ) : (
@@ -102,11 +207,61 @@ export default function HistoryScreen({ navigation }) {
                 )}
             </ScrollView>
 
-            <TouchableOpacity
-                style={styles.floatingButton}
-                onPress={() => navigation.navigate('Calendar')}
+            {/* Details Modal */}
+            <Modal
+                visible={selectedTask !== null}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setSelectedTask(null)}
             >
-                <Feather name="calendar" size={24} color="#FFFFFF" />
+                <TouchableWithoutFeedback onPress={() => setSelectedTask(null)}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback>
+                            <View style={styles.modalContent}>
+                                {selectedTask && (
+                                    <>
+                                        <Text style={styles.modalTitle}>{selectedTask.name.toUpperCase()}</Text>
+
+                                        <View style={styles.modalStatRow}>
+                                            <View style={styles.modalStatItem}>
+                                                <Text style={styles.modalStatLabel}>PLANNED</Text>
+                                                <Text style={styles.modalStatValue}>{selectedTask.originalDuration || selectedTask.duration} MIN</Text>
+                                            </View>
+                                            <View style={styles.modalStatDivider} />
+                                            <View style={styles.modalStatItem}>
+                                                <Text style={styles.modalStatLabel}>ACTUAL</Text>
+                                                <Text style={styles.modalStatValue}>
+                                                    {selectedTask.elapsedSeconds !== undefined
+                                                        ? formatDuration(selectedTask.elapsedSeconds)
+                                                        : `${selectedTask.timeSpent !== undefined ? selectedTask.timeSpent : selectedTask.duration} MIN`}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            style={styles.deleteButton}
+                                            onPress={handleDeleteTask}
+                                        >
+                                            <Feather name="trash-2" size={20} color="#FF3B30" style={{ marginRight: 10 }} />
+                                            <Text style={styles.deleteButtonText}>DELETE RECORD</Text>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+
+            <TouchableOpacity
+                style={[styles.floatingButton, selectionMode && styles.deleteFab]}
+                onPress={selectionMode ? handleBulkDelete : () => navigation.navigate('Calendar')}
+            >
+                <Feather
+                    name={selectionMode ? "trash-2" : "calendar"}
+                    size={24}
+                    color={selectionMode ? "#FFFFFF" : "#FFFFFF"}
+                />
             </TouchableOpacity>
         </View >
     );
@@ -121,7 +276,7 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         paddingHorizontal: 30,
         marginBottom: 40,
     },
@@ -174,12 +329,23 @@ const styles = StyleSheet.create({
     taskList: {
         marginTop: 10,
     },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
     sectionTitle: {
         color: '#666666',
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 2,
-        marginBottom: 10,
+    },
+    selectAllText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 1,
     },
     swipeHint: {
         color: '#444444',
@@ -267,5 +433,94 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: '#111111',
+        borderRadius: 20,
+        padding: 30,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#222222',
+    },
+    modalTitle: {
+        color: '#FFFFFF',
+        fontSize: 24,
+        fontWeight: '900',
+        marginBottom: 30,
+        textAlign: 'center',
+        letterSpacing: 1,
+    },
+    modalStatRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        width: '100%',
+        marginBottom: 40,
+    },
+    modalStatItem: {
+        alignItems: 'center',
+    },
+    modalStatDivider: {
+        width: 1,
+        height: 40,
+        backgroundColor: '#222222',
+        marginHorizontal: 20,
+    },
+    modalStatLabel: {
+        color: '#666666',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 2,
+        marginBottom: 6,
+    },
+    modalStatValue: {
+        color: '#FFFFFF',
+        fontSize: 24,
+        fontWeight: '800',
+    },
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 59, 48, 0.1)',
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 30,
+        marginTop: 10,
+    },
+    deleteButtonText: {
+        color: '#FF3B30',
+        fontSize: 14,
+        fontWeight: '800',
+        letterSpacing: 1,
+    },
+    selectedTaskItem: {
+        borderColor: '#FFFFFF',
+        backgroundColor: '#222222',
+    },
+    selectedCheckmark: {
+        backgroundColor: '#FFFFFF',
+        borderColor: '#FFFFFF',
+    },
+    cancelText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        letterSpacing: 1,
+        marginTop: 10,
+    },
+    cancelButton: {
+        padding: 5,
+        backgroundColor: '#222222',
+        borderRadius: 15,
+    },
+    deleteFab: {
+        backgroundColor: '#FF3B30',
+        borderColor: '#FF3B30',
     },
 });

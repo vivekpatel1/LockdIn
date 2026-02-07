@@ -2,6 +2,7 @@ import { StatusBar as ExpoStatusBar, setStatusBarHidden } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, View, Image, StatusBar } from 'react-native';
 import { useState, useEffect } from 'react';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 // Hide status bar immediately and aggressively
 StatusBar.setHidden(true, 'none');
@@ -17,6 +18,7 @@ import ActiveTaskScreen from './src/screens/ActiveTaskScreen';
 import PauseScreen from './src/screens/PauseScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import IntroAnimation from './src/components/IntroAnimation';
 import { TaskProvider } from './src/context/TaskContext';
 
@@ -35,6 +37,11 @@ const PureBlackTheme = {
 
 export default function App() {
     const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        // Enforce portrait mode globally by default
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    }, []);
 
     if (!isReady) {
         return (
@@ -61,6 +68,7 @@ export default function App() {
                             <Stack.Screen name="Home" component={HomeScreen} />
                             <Stack.Screen name="History" component={HistoryScreen} />
                             <Stack.Screen name="Calendar" component={CalendarScreen} />
+                            <Stack.Screen name="Settings" component={SettingsScreen} />
                             <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
                             <Stack.Screen
                                 name="ActiveTask"
