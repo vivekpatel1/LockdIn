@@ -112,6 +112,35 @@ export default function SettingsScreen({ navigation }) {
                     </View>
                 </View>
 
+                {/* Section: Focus Mode (Spotify) */}
+                <View style={[styles.section, { borderBottomColor: colors.divider }]}>
+                    <Text style={[styles.sectionHeader, { color: colors.sectionHeader }]}>FOCUS MODE</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.divider }]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.rowLabel, { color: colors.text }]}>Spotify Integration</Text>
+                            <Text style={[styles.helperText, { color: colors.textTertiary, marginBottom: 0 }]}>
+                                Play music automatically when focused.
+                            </Text>
+                        </View>
+                        <TouchableOpacity
+                            style={[styles.connectButton, { backgroundColor: colors.secondary }]}
+                            activeOpacity={0.7}
+                        >
+                            <Feather name="music" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+                            <Text style={[styles.connectButtonText, { color: colors.primary }]}>CONNECT</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={[styles.row, { borderBottomColor: colors.divider }]}>
+                        <Text style={[styles.rowLabel, { color: colors.text }]}>Focus Playlist</Text>
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={[styles.rowValue, { color: colors.textSecondary, marginRight: 8 }]}>None Selected</Text>
+                            <Feather name="chevron-right" size={16} color={colors.textTertiary} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
                 {/* Section: About */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionHeader, { color: colors.sectionHeader }]}>ABOUT</Text>
@@ -205,5 +234,17 @@ const styles = StyleSheet.create({
     aboutText: {
         fontSize: 14,
         lineHeight: 24,
+    },
+    connectButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+    },
+    connectButtonText: {
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1,
     }
 });

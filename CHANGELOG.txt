@@ -1,5 +1,24 @@
 LockdIn Development Changelog
 
+February 8, 2026 (Part 3)
+Feature: Auto-Pause, UI Polish & Settings Integration
+- Auto-Pause:
+  - Implemented automatic timer pause when app is backgrounded.
+  - Added "PAUSED" visual overlay (dimmed screen) to ActiveTaskScreen.
+  - Added "Return to Work" notification trigger.
+- Active Task UI:
+  - Updated Pause button to "Exit & Pause" (Returns to Home for later resumption).
+  - Added quick-add time buttons (+2m, +5m, +10m) below timer.
+  - Center-aligned all controls for better focus.
+- Create Task UI:
+  - Swapped "Set Tasks" to be the primary footer button.
+  - Moved "Add Task" to a small inline (+) button.
+  - Pinned input form to top; new tasks now stack below (newest first).
+- Settings:
+  - Added "Focus Mode" section with Spotify status and playlist selector UI (Preparation for future API integration).
+- Theme:
+  - Reverted Light Mode accent to pure Black/White for higher contrast.
+
 February 7, 2026 (Part 2)
 Feature: Light Mode Overhaul & Bug Fixes
 - Light Mode:

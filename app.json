@@ -1,29 +1,35 @@
 {
-    "expo": {
-        "name": "Lockdin",
-        "slug": "lockdin",
-        "version": "1.0.0",
-        "orientation": "default",
-        "userInterfaceStyle": "dark",
-        "splash": {
-            "image": "./assets/splash.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#000000"
-        },
-        "assetBundlePatterns": [
-            "**/*"
-        ],
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "statusBar": {
-                "hidden": true
-            },
-            "softwareKeyboardLayoutMode": "pan"
-        },
-        "web": {
-            "favicon": "./assets/splash.png"
-        }
+  "expo": {
+    "name": "Lockdin",
+    "slug": "lockdin",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "statusBar": {
+        "hidden": true
+      },
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.anonymous.lockdin"
+    },
+    "web": {
+      "favicon": "./assets/splash.png"
     }
+  }
 }

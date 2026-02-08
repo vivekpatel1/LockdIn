@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -48,7 +49,7 @@ export default function CreateTaskScreen({ navigation }) {
                 name: task.trim(),
                 duration: parseInt(duration),
             };
-            setTaskList(prev => [...prev, newTask]);
+            setTaskList(prev => [newTask, ...prev]);
             setTask('');
             setDuration('');
         }
@@ -71,15 +72,6 @@ export default function CreateTaskScreen({ navigation }) {
 
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>COMMIT</Text>
-                {taskList.length > 0 && (
-                    <TouchableOpacity
-                        style={[styles.headerButton, { backgroundColor: colors.secondary }]}
-                        onPress={handleSetTasks}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={[styles.headerButtonText, { color: colors.onSecondary }]}>SET</Text>
-                    </TouchableOpacity>
-                )}
             </View>
 
             <ScrollView
@@ -87,24 +79,6 @@ export default function CreateTaskScreen({ navigation }) {
                 contentContainerStyle={{ paddingBottom: 220 }}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Task List */}
-                {taskList.length > 0 && (
-                    <View style={styles.taskListContainer}>
-                        <Text style={[styles.taskListTitle, { color: colors.sectionHeader }]}>TODAY'S TASKS</Text>
-                        {taskList.map(t => (
-                            <View key={t.id} style={[styles.taskItem, { borderBottomColor: colors.divider }]}>
-                                <View style={styles.taskInfo}>
-                                    <Text style={[styles.taskName, { color: colors.text }]}>{t.name}</Text>
-                                    <Text style={[styles.taskDuration, { color: colors.textSecondary }]}>{t.duration} MIN</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => handleRemoveTask(t.id)}>
-                                    <Text style={[styles.removeButton, { color: colors.textTertiary }]}>✕</Text>
-                                </TouchableOpacity>
-                            </View>
-                        ))}
-                    </View>
-                )}
-
                 {/* Input Form (Animated) */}
                 <Animated.View style={[
                     styles.inputContainer,
@@ -136,25 +110,54 @@ export default function CreateTaskScreen({ navigation }) {
                             />
                             <Text style={[styles.minLabel, { color: colors.textTertiary }]}>MIN</Text>
                         </View>
+
+                        {/* Inline Add Button */}
+                        <TouchableOpacity
+                            style={[
+                                styles.inlineAddButton,
+                                { backgroundColor: colors.primary, opacity: (!task || !duration) ? 0.3 : 1 }
+                            ]}
+                            onPress={handleAddTask}
+                            disabled={!task || !duration}
+                        >
+                            <Feather name="plus" size={24} color={colors.onPrimary} />
+                        </TouchableOpacity>
                     </View>
                 </Animated.View>
+
+                {/* Task List */}
+                {taskList.length > 0 && (
+                    <View style={styles.taskListContainer}>
+                        <Text style={[styles.taskListTitle, { color: colors.sectionHeader }]}>TODAY'S TASKS</Text>
+                        {taskList.map(t => (
+                            <View key={t.id} style={[styles.taskItem, { borderBottomColor: colors.divider }]}>
+                                <View style={styles.taskInfo}>
+                                    <Text style={[styles.taskName, { color: colors.text }]}>{t.name}</Text>
+                                    <Text style={[styles.taskDuration, { color: colors.textSecondary }]}>{t.duration} MIN</Text>
+                                </View>
+                                <TouchableOpacity onPress={() => handleRemoveTask(t.id)}>
+                                    <Text style={[styles.removeButton, { color: colors.textTertiary }]}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </View>
+                )}
             </ScrollView>
 
             <View style={[styles.footer, { backgroundColor: colors.background }]}>
-                {/* Add Task Button */}
-                <TouchableOpacity
-                    style={[
-                        styles.addButton,
-                        { backgroundColor: colors.primary }
-                    ]}
-                    onPress={handleAddTask}
-                    disabled={!task || !duration}
-                    activeOpacity={0.8}
-                >
-                    <Text style={[styles.addButtonText, { color: colors.onPrimary }]}>+ ADD TASK</Text>
-                </TouchableOpacity>
-
-
+                {/* Set Tasks Button (Primary Footer Action) */}
+                {taskList.length > 0 && (
+                    <TouchableOpacity
+                        style={[
+                            styles.addButton, // Keep big style
+                            { backgroundColor: colors.primary }
+                        ]}
+                        onPress={handleSetTasks}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[styles.addButtonText, { color: colors.onPrimary }]}>SET TASKS</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -282,5 +285,14 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '900',
         letterSpacing: 3,
+    },
+    inlineAddButton: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 15,
+        marginBottom: 5, // Align with input
     },
 });

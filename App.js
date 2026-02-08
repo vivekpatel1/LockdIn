@@ -21,6 +21,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import IntroAnimation from './src/components/IntroAnimation'; // We'll need to refactor this too or pass props
 import { TaskProvider } from './src/context/TaskContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { requestNotificationPermissions } from './src/utils/notifications';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +32,7 @@ const AppContent = () => {
     useEffect(() => {
         // Enforce portrait mode globally by default
         ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        requestNotificationPermissions();
     }, []);
 
     const navigationTheme = {
