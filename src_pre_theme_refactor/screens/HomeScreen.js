@@ -5,7 +5,6 @@ import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { useTasks } from '../context/TaskContext';
-import { useTheme } from '../context/ThemeContext';
 
 const { height } = Dimensions.get('window');
 const CARD_HEIGHT = 220;
@@ -16,8 +15,6 @@ export default function HomeScreen({ navigation }) {
     const isFocused = useIsFocused();
     const [displayTitle, setDisplayTitle] = useState('LOCKDIN');
     const { tasks, deleteTask } = useTasks();
-    const { theme } = useTheme();
-    const colors = theme.colors;
 
     // Lock to Portrait on Focus
     useFocusEffect(
@@ -75,27 +72,27 @@ export default function HomeScreen({ navigation }) {
     };
 
     const renderItem = ({ item }) => (
-        <View style={[styles.taskCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+        <View style={styles.taskCard}>
             <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => deleteTask(item.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <Ionicons name="trash-outline" size={20} color={colors.textTertiary} />
+                <Ionicons name="trash-outline" size={20} color="#666666" />
             </TouchableOpacity>
 
             <View style={styles.taskCardInner}>
-                <Text style={[styles.taskCardName, { color: colors.text }]}>{item.name}</Text>
-                <Text style={[styles.taskCardDuration, { color: colors.textSecondary }]}>
+                <Text style={styles.taskCardName}>{item.name}</Text>
+                <Text style={styles.taskCardDuration}>
                     {item.remainingTime ? `${formatTime(item.remainingTime)} LEFT` : `${item.duration} MIN`}
                 </Text>
             </View>
             <TouchableOpacity
-                style={[styles.startButton, { backgroundColor: colors.primary }]}
+                style={styles.startButton}
                 onPress={() => handleStartTask(item)}
                 activeOpacity={0.8}
             >
-                <Text style={[styles.startButtonText, { color: colors.onPrimary }]}>
+                <Text style={styles.startButtonText}>
                     {item.remainingTime ? 'RESUME' : 'START'}
                 </Text>
             </TouchableOpacity>
@@ -103,7 +100,7 @@ export default function HomeScreen({ navigation }) {
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <StatusBar hidden />
 
             {/* Header */}
@@ -113,12 +110,12 @@ export default function HomeScreen({ navigation }) {
             ]}>
                 <View style={styles.headerLockRow}>
                     <View style={styles.lockWrapperSmall}>
-                        <View style={[styles.shackleSmall, { borderColor: colors.text }]} />
-                        <View style={[styles.lockBodySmall, { backgroundColor: colors.text }]} />
+                        <View style={styles.shackleSmall} />
+                        <View style={styles.lockBodySmall} />
                     </View>
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>{displayTitle}</Text>
+                    <Text style={styles.headerTitle}>{displayTitle}</Text>
                 </View>
-                <Text style={[styles.headerSubtitle, { color: colors.headerSubtitle }]}>STAY FOCUSED.</Text>
+                <Text style={styles.headerSubtitle}>STAY FOCUSED.</Text>
             </Animated.View>
 
             {/* Settings Button */}
@@ -130,7 +127,7 @@ export default function HomeScreen({ navigation }) {
                     onPress={() => navigation.navigate('Settings')}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
-                    <Ionicons name="settings-sharp" size={24} color={colors.icon} />
+                    <Ionicons name="settings-sharp" size={24} color="#333333" />
                 </TouchableOpacity>
             </Animated.View>
 
@@ -138,8 +135,8 @@ export default function HomeScreen({ navigation }) {
             <Animated.View style={[styles.mainContainer, { opacity: contentFadeAnim }]}>
                 {activeTasks.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>NO TASKS FOR TODAY</Text>
-                        <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>Tap + to add your first task</Text>
+                        <Text style={styles.emptyText}>NO TASKS FOR TODAY</Text>
+                        <Text style={styles.emptySubtext}>Tap + to add your first task</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -161,11 +158,11 @@ export default function HomeScreen({ navigation }) {
                 { opacity: contentFadeAnim, transform: [{ translateY: fabYAnim }] }
             ]}>
                 <TouchableOpacity
-                    style={[styles.historyFab, { backgroundColor: colors.primary }]}
+                    style={styles.historyFab}
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('History')}
                 >
-                    <Text style={[styles.historyFabText, { color: colors.onPrimary }]}>✓</Text>
+                    <Text style={styles.historyFabText}>✓</Text>
                 </TouchableOpacity>
             </Animated.View>
 
@@ -175,11 +172,11 @@ export default function HomeScreen({ navigation }) {
                 { opacity: contentFadeAnim, transform: [{ translateY: fabYAnim }] }
             ]}>
                 <TouchableOpacity
-                    style={[styles.fab, { backgroundColor: colors.primary }]}
+                    style={styles.fab}
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('CreateTask')}
                 >
-                    <Text style={[styles.fabText, { color: colors.onPrimary }]}>+</Text>
+                    <Text style={styles.fabText}>+</Text>
                 </TouchableOpacity>
             </Animated.View>
         </View>
@@ -189,6 +186,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000',
     },
     header: {
         position: 'absolute',
@@ -215,12 +213,14 @@ const styles = StyleSheet.create({
     lockBodySmall: {
         width: 20,
         height: 15,
+        backgroundColor: '#FFFFFF',
         borderRadius: 2,
     },
     shackleSmall: {
         width: 14,
         height: 12.5,
         borderWidth: 3,
+        borderColor: '#FFFFFF',
         borderBottomWidth: 0,
         borderTopLeftRadius: 7,
         borderTopRightRadius: 7,
@@ -228,6 +228,7 @@ const styles = StyleSheet.create({
         top: 0,
     },
     headerTitle: {
+        color: '#FFFFFF',
         fontSize: 40,
         fontWeight: '900',
         letterSpacing: 2,
@@ -235,6 +236,7 @@ const styles = StyleSheet.create({
         textAlignVertical: 'center',
     },
     headerSubtitle: {
+        color: '#888888',
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 4,
@@ -259,12 +261,14 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
     },
     emptyText: {
+        color: '#555555',
         fontSize: 14,
         fontWeight: '700',
         letterSpacing: 3,
         marginBottom: 10,
     },
     emptySubtext: {
+        color: '#333333',
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 2,
@@ -272,23 +276,27 @@ const styles = StyleSheet.create({
     taskCard: {
         height: CARD_HEIGHT,
         marginBottom: CARD_MARGIN,
+        backgroundColor: '#111111',
         borderRadius: 20,
         padding: 30,
         justifyContent: 'center',
         alignItems: 'center', // Center content horizontally
         borderWidth: 1,
+        borderColor: '#222222',
     },
     taskCardInner: {
         alignItems: 'center',
         marginBottom: 20,
     },
     taskCardName: {
+        color: '#FFFFFF',
         fontSize: 28, // Larger font
         fontWeight: '700',
         marginBottom: 10,
         textAlign: 'center',
     },
     taskCardDuration: {
+        color: '#888888',
         fontSize: 16,
         fontWeight: '600',
         letterSpacing: 2,
@@ -301,6 +309,7 @@ const styles = StyleSheet.create({
         padding: 5,
     },
     startButton: {
+        backgroundColor: '#FFFFFF',
         width: 120, // Larger button
         height: 50,
         borderRadius: 25,
@@ -308,6 +317,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     startButtonText: {
+        color: '#000000',
         fontSize: 16,
         fontWeight: '900',
         letterSpacing: 2,
@@ -321,10 +331,12 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
+        backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
     },
     historyFabText: {
+        color: '#000000',
         fontSize: 24,
         fontWeight: '300',
     },
@@ -337,10 +349,12 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
+        backgroundColor: '#FFFFFF',
         alignItems: 'center',
         justifyContent: 'center',
     },
     fabText: {
+        color: '#000000',
         fontSize: 32,
         fontWeight: '300',
         marginTop: -4,

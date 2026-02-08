@@ -7,14 +7,10 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { Feather } from '@expo/vector-icons';
 import { useTasks } from '../context/TaskContext';
 import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../context/ThemeContext';
 
 export default function ActiveTaskScreen({ route, navigation }) {
     const { task, initialDuration, taskId, initialRemainingTime } = route.params;
     const { tasks, updateTask, deleteTask } = useTasks();
-    const { theme } = useTheme();
-    const colors = theme.colors;
-
     const currentTask = tasks.find(t => t.id === taskId);
 
     // Use initialRemainingTime if available, otherwise calculate from duration
@@ -127,6 +123,10 @@ export default function ActiveTaskScreen({ route, navigation }) {
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     };
 
+
+
+
+
     const handlePause = async () => {
         isExitingRef.current = true;
 
@@ -161,45 +161,36 @@ export default function ActiveTaskScreen({ route, navigation }) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <StatusBar hidden translucent backgroundColor="transparent" />
 
             <View style={styles.layout}>
                 <View style={styles.infoSection}>
-                    <Text style={[styles.taskTitle, { color: colors.text }]}>{task.toUpperCase()}</Text>
+                    <Text style={styles.taskTitle}>{task.toUpperCase()}</Text>
 
                     <View style={styles.footer}>
                         {/* Done Button */}
                         <TouchableOpacity
-                            style={[
-                                styles.smallButtonSecondary,
-                                { backgroundColor: colors.secondary, borderColor: colors.border }
-                            ]}
+                            style={styles.smallButtonSecondary}
                             onPress={handleDone}
                         >
-                            <Feather name="check" size={24} color={colors.icon} />
+                            <Feather name="check" size={24} color="#FFFFFF" />
                         </TouchableOpacity>
 
                         {/* Pause Button */}
                         <TouchableOpacity
-                            style={[
-                                styles.smallButtonSecondary,
-                                { backgroundColor: colors.secondary, borderColor: colors.border }
-                            ]}
+                            style={styles.smallButtonSecondary}
                             onPress={handlePause}
                         >
-                            <Feather name="pause" size={24} color={colors.icon} />
+                            <Feather name="pause" size={24} color="#FFFFFF" />
                         </TouchableOpacity>
 
                         {/* Cancel Button */}
                         <TouchableOpacity
-                            style={[
-                                styles.smallButtonSecondary,
-                                { backgroundColor: colors.secondary, borderColor: colors.border }
-                            ]}
+                            style={styles.smallButtonSecondary}
                             onPress={handleCancel}
                         >
-                            <Feather name="x" size={24} color={colors.icon} />
+                            <Feather name="x" size={24} color="#FFFFFF" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -207,7 +198,7 @@ export default function ActiveTaskScreen({ route, navigation }) {
                 <View style={styles.timerSection}>
                     <View style={styles.timerTextContainer}>
                         <Text
-                            style={[styles.timerText, { color: colors.text }]}
+                            style={styles.timerText}
                             numberOfLines={1}
                             adjustsFontSizeToFit
                         >
@@ -218,14 +209,11 @@ export default function ActiveTaskScreen({ route, navigation }) {
                     {secondsLeft < 120 && (
                         <View style={styles.floatingButtonContainer}>
                             <TouchableOpacity
-                                style={[
-                                    styles.addTimeButton,
-                                    { backgroundColor: colors.secondary, borderColor: colors.border }
-                                ]}
+                                style={styles.addTimeButton}
                                 onPress={() => setSecondsLeft(prev => prev + 300)}
                             >
-                                <Feather name="plus-circle" size={16} color={colors.icon} style={{ marginRight: 8 }} />
-                                <Text style={[styles.addTimeText, { color: colors.icon }]}>ADD 5 MINS</Text>
+                                <Feather name="plus-circle" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                                <Text style={styles.addTimeText}>ADD 5 MINS</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -238,6 +226,7 @@ export default function ActiveTaskScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000',
     },
     layout: {
         flex: 1,
@@ -261,7 +250,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    // taskLabel removed as simplified
     taskTitle: {
+        color: '#FFFFFF',
         fontSize: 32, // Smaller to fit 30% width
         fontWeight: '800',
         marginBottom: 20,
@@ -269,6 +260,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     timerText: {
+        color: '#FFFFFF',
         fontSize: 160,
         fontWeight: '900',
         letterSpacing: -5,
@@ -288,19 +280,24 @@ const styles = StyleSheet.create({
         width: 56, // Slightly smaller buttons
         height: 56,
         borderRadius: 28,
+        backgroundColor: '#111111',
         borderWidth: 1.5,
+        borderColor: '#222222',
         alignItems: 'center',
         justifyContent: 'center',
     },
     addTimeButton: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#111111', // Match smallButtonSecondary
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 30, // Pill shape
         borderWidth: 1.5,
+        borderColor: '#222222', // Match smallButtonSecondary
     },
     addTimeText: {
+        color: '#FFFFFF', // White for visibility
         fontSize: 13,
         fontWeight: '700',
         letterSpacing: 1,

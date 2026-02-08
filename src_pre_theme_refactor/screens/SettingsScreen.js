@@ -3,9 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Animated } from '
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useTasks } from '../context/TaskContext';
-import { useTheme } from '../context/ThemeContext';
 
-const CustomSwitch = ({ value, onValueChange, activeTrackColor, inactiveTrackColor, activeThumbColor, inactiveThumbColor }) => {
+const CustomSwitch = ({ value, onValueChange }) => {
     const animValue = useRef(new Animated.Value(value ? 1 : 0)).current;
 
     useEffect(() => {
@@ -18,12 +17,12 @@ const CustomSwitch = ({ value, onValueChange, activeTrackColor, inactiveTrackCol
 
     const trackColor = animValue.interpolate({
         inputRange: [0, 1],
-        outputRange: [inactiveTrackColor || '#222222', activeTrackColor || '#FFFFFF']
+        outputRange: ['#222222', '#FFFFFF']
     });
 
     const thumbColor = animValue.interpolate({
         inputRange: [0, 1],
-        outputRange: [inactiveThumbColor || '#666666', activeThumbColor || '#000000']
+        outputRange: ['#666666', '#000000']
     });
 
     const translateX = animValue.interpolate({
@@ -52,11 +51,9 @@ const CustomSwitch = ({ value, onValueChange, activeTrackColor, inactiveTrackCol
 
 export default function SettingsScreen({ navigation }) {
     const { autoArchive, toggleAutoArchive } = useTasks();
-    const { theme, toggleTheme, isDark } = useTheme();
-    const colors = theme.colors;
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <StatusBar hidden />
 
             {/* Header */}
@@ -65,57 +62,42 @@ export default function SettingsScreen({ navigation }) {
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Feather name="arrow-left" size={24} color={colors.icon} />
+                    <Feather name="arrow-left" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>SETTINGS</Text>
+                <Text style={styles.headerTitle}>SETTINGS</Text>
             </View>
 
             <ScrollView style={styles.content}>
                 {/* Section: General */}
-                <View style={[styles.section, { borderBottomColor: colors.divider }]}>
-                    <Text style={[styles.sectionHeader, { color: colors.sectionHeader }]}>GENERAL</Text>
+                <View style={styles.section}>
+                    <Text style={styles.sectionHeader}>GENERAL</Text>
 
                     {/* Auto Archive Toggle */}
-                    <View style={[styles.row, { borderBottomColor: colors.divider }]}>
-                        <Text style={[styles.rowLabel, { color: colors.text }]}>Auto-Archive Wins</Text>
+                    <View style={styles.row}>
+                        <Text style={styles.rowLabel}>Auto-Archive Wins</Text>
                         <CustomSwitch
                             value={autoArchive}
                             onValueChange={toggleAutoArchive}
-                            activeTrackColor={colors.primary}
-                            inactiveTrackColor={colors.border}
-                            activeThumbColor={colors.onPrimary}
-                            inactiveThumbColor={colors.textSecondary}
                         />
                     </View>
-                    <Text style={[styles.helperText, { color: colors.textTertiary }]}>
+                    <Text style={styles.helperText}>
                         Automatically move completed wins to the archive at the start of a new day.
                     </Text>
 
-                    {/* Theme Toggle */}
-                    <View style={[styles.row, { borderBottomColor: colors.divider, marginTop: 20 }]}>
-                        <Text style={[styles.rowLabel, { color: colors.text }]}>Dark Mode</Text>
-                        <CustomSwitch
-                            value={isDark}
-                            onValueChange={toggleTheme}
-                            activeTrackColor={colors.primary}
-                            inactiveTrackColor={colors.border}
-                            activeThumbColor={colors.onPrimary}
-                            inactiveThumbColor={colors.textSecondary}
-                        />
-                    </View>
 
-                    <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
+                    <View style={styles.divider} />
 
                     <View style={styles.row}>
-                        <Text style={[styles.rowLabel, { color: colors.text }]}>Version</Text>
-                        <Text style={[styles.rowValue, { color: colors.textSecondary }]}>1.0.0</Text>
+                        <Text style={styles.rowLabel}>Version</Text>
+                        <Text style={styles.rowValue}>1.0.0</Text>
                     </View>
                 </View>
 
                 {/* Section: About */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionHeader, { color: colors.sectionHeader }]}>ABOUT</Text>
-                    <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
+                    <Text style={styles.sectionHeader}>ABOUT</Text>
+                    <Text style={styles.aboutText}>
                         LockdIn is designed to help you maintain deep focus.
                         No distractions. Pure productivity.
                     </Text>
@@ -128,6 +110,7 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000',
         paddingTop: 60,
     },
     header: {
@@ -140,6 +123,7 @@ const styles = StyleSheet.create({
         marginRight: 20,
     },
     headerTitle: {
+        color: '#FFFFFF',
         fontSize: 24,
         fontWeight: '900',
         letterSpacing: 2,
@@ -152,6 +136,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     sectionHeader: {
+        color: '#666666',
         fontSize: 12,
         fontWeight: '700',
         letterSpacing: 2,
@@ -163,12 +148,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 15,
         borderBottomWidth: 1,
+        borderBottomColor: '#111111',
     },
     rowLabel: {
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },
     rowValue: {
+        color: '#888888',
         fontSize: 16,
     },
     // Switch Styles
@@ -181,28 +169,42 @@ const styles = StyleSheet.create({
         height: 30,
         borderRadius: 15,
         justifyContent: 'center',
-        borderWidth: 1, // Optional: add border for light mode visibility if track is light
-        borderColor: 'transparent', // Or colors.border
     },
     switchThumb: {
         width: 26,
         height: 26,
         borderRadius: 13,
         position: 'absolute',
-        top: 1, // Adjusted for border
-        left: 0,
+        top: 2,
+        left: 0, // Animated via translateX
     },
     helperText: {
+        color: '#444444',
         fontSize: 12,
         lineHeight: 18,
         marginTop: 10,
         marginBottom: 20,
     },
+    actionButton: {
+        backgroundColor: '#FFFFFF',
+        paddingVertical: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    actionButtonText: {
+        color: '#000000',
+        fontSize: 14,
+        fontWeight: '900',
+        letterSpacing: 1,
+    },
     divider: {
         height: 1,
+        backgroundColor: '#111111',
         marginVertical: 10,
     },
     aboutText: {
+        color: '#888888',
         fontSize: 14,
         lineHeight: 24,
     }

@@ -1,5 +1,16 @@
 LockdIn Development Changelog
 
+February 7, 2026 (Part 2)
+Feature: Light Mode Overhaul & Bug Fixes
+- Light Mode:
+  - Implemented high-contrast "Wireframe" Light Mode (White Cards, Black Borders).
+  - Enforced strict Monochromatic Theme (Black Buttons, White Text) across all screens.
+  - Updated "Add Task" button (CreateTaskScreen) to always be solid Black.
+  - Updated "Calendar" floating button (HistoryScreen) to match the primary theme.
+- Bug Fixes:
+  - Fixed `ReferenceError` crash in IntroAnimation.js.
+  - Fixed "lockdinundefined" text glitch in IntroAnimation.js typewriter effect.
+
 February 7, 2026
 Feature: Multi-Select, Bulk Delete, and UI Polish
 - Multi-Select Functionality: 

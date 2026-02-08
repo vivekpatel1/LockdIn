@@ -6,7 +6,6 @@ import { Feather } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 // import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useTasks } from '../context/TaskContext';
-import { useTheme } from '../context/ThemeContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -22,9 +21,6 @@ const formatDuration = (seconds) => {
 };
 
 export default function HistoryScreen({ navigation }) {
-    const { theme } = useTheme();
-    const colors = theme.colors;
-
     // Lock to Portrait on Focus
     useFocusEffect(
         useCallback(() => {
@@ -140,22 +136,18 @@ export default function HistoryScreen({ navigation }) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.container}>
             <StatusBar hidden />
 
             {/* Header */}
             <View style={styles.header}>
                 <View>
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>COMPLETED</Text>
-                    <Text style={[styles.headerSubtitle, { color: colors.headerSubtitle }]}>{currentDate}</Text>
+                    <Text style={styles.headerTitle}>COMPLETED</Text>
+                    <Text style={styles.headerSubtitle}>{currentDate}</Text>
                 </View>
                 {selectionMode && (
-                    <TouchableOpacity
-                        onPress={cancelSelection}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        style={[styles.cancelButton, { backgroundColor: colors.backgroundSecondary }]}
-                    >
-                        <Feather name="x" size={20} color={colors.text} />
+                    <TouchableOpacity onPress={cancelSelection} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.cancelButton}>
+                        <Feather name="x" size={20} color="#FFFFFF" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -169,10 +161,10 @@ export default function HistoryScreen({ navigation }) {
                 {todaysTasks.length > 0 ? (
                     <View style={styles.taskList}>
                         <View style={styles.sectionHeaderRow}>
-                            <Text style={[styles.sectionTitle, { color: colors.sectionHeader }]}>TODAY'S WINS</Text>
+                            <Text style={styles.sectionTitle}>TODAY'S WINS</Text>
                             {selectionMode && (
                                 <TouchableOpacity onPress={toggleSelectAll}>
-                                    <Text style={[styles.selectAllText, { color: colors.text }]}>SELECT ALL</Text>
+                                    <Text style={styles.selectAllText}>SELECT ALL</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -181,40 +173,26 @@ export default function HistoryScreen({ navigation }) {
                                 key={task.id}
                                 style={[
                                     styles.taskItem,
-                                    {
-                                        backgroundColor: colors.cardBackground,
-                                        borderColor: colors.taskItemBorder
-                                    },
-                                    selectedItems.has(task.id) && {
-                                        backgroundColor: colors.selectedItem,
-                                        borderColor: colors.selectedItemBorder
-                                    }
+                                    selectedItems.has(task.id) && styles.selectedTaskItem
                                 ]}
                                 onPress={() => handleTaskPress(task)}
                                 onLongPress={() => handleLongPress(task)}
                                 delayLongPress={300}
                             >
                                 <View style={styles.taskInfo}>
-                                    <Text style={[styles.taskNameText, { color: colors.text }]}>{task.name.toUpperCase()}</Text>
-                                    <Text style={[styles.taskTimeText, { color: colors.textSecondary }]}>
+                                    <Text style={styles.taskNameText}>{task.name.toUpperCase()}</Text>
+                                    <Text style={styles.taskTimeText}>
                                         {task.elapsedSeconds ? formatDuration(task.elapsedSeconds) : `${task.duration} MIN`}
                                     </Text>
                                 </View>
                                 <View style={[
                                     styles.checkmarkIcon,
-                                    {
-                                        backgroundColor: colors.backgroundSecondary,
-                                        borderColor: colors.border
-                                    },
-                                    selectedItems.has(task.id) && {
-                                        backgroundColor: colors.primary,
-                                        borderColor: colors.primary // Invert for selected
-                                    }
+                                    selectedItems.has(task.id) && styles.selectedCheckmark
                                 ]}>
                                     {selectedItems.has(task.id) ? (
-                                        <Feather name="check" size={14} color={colors.onPrimary} />
+                                        <Feather name="check" size={14} color="#000" />
                                     ) : (
-                                        <Text style={[styles.checkmarkText, { color: colors.text }]}>✓</Text>
+                                        <Text style={styles.checkmarkText}>✓</Text>
                                     )}
                                 </View>
                             </TouchableOpacity>
@@ -222,9 +200,9 @@ export default function HistoryScreen({ navigation }) {
                     </View>
                 ) : (
                     <View style={styles.emptyState}>
-                        <Text style={[styles.emptyText, { color: colors.sectionHeader }]}>NO WINS RECORDED TODAY</Text>
-                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                        <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>COMPLETE A TASK TO EARN A WIN.</Text>
+                        <Text style={styles.emptyText}>NO WINS RECORDED TODAY</Text>
+                        <View style={styles.divider} />
+                        <Text style={styles.emptyHint}>COMPLETE A TASK TO EARN A WIN.</Text>
                     </View>
                 )}
             </ScrollView>
@@ -237,25 +215,22 @@ export default function HistoryScreen({ navigation }) {
                 onRequestClose={() => setSelectedTask(null)}
             >
                 <TouchableWithoutFeedback onPress={() => setSelectedTask(null)}>
-                    <View style={[styles.modalOverlay, { backgroundColor: colors.modalOverlay }]}>
+                    <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback>
-                            <View style={[styles.modalContent, {
-                                backgroundColor: colors.cardBackgroundSecondary || colors.background,
-                                borderColor: colors.border
-                            }]}>
+                            <View style={styles.modalContent}>
                                 {selectedTask && (
                                     <>
-                                        <Text style={[styles.modalTitle, { color: colors.text }]}>{selectedTask.name.toUpperCase()}</Text>
+                                        <Text style={styles.modalTitle}>{selectedTask.name.toUpperCase()}</Text>
 
                                         <View style={styles.modalStatRow}>
                                             <View style={styles.modalStatItem}>
-                                                <Text style={[styles.modalStatLabel, { color: colors.sectionHeader }]}>PLANNED</Text>
-                                                <Text style={[styles.modalStatValue, { color: colors.text }]}>{selectedTask.originalDuration || selectedTask.duration} MIN</Text>
+                                                <Text style={styles.modalStatLabel}>PLANNED</Text>
+                                                <Text style={styles.modalStatValue}>{selectedTask.originalDuration || selectedTask.duration} MIN</Text>
                                             </View>
-                                            <View style={[styles.modalStatDivider, { backgroundColor: colors.divider }]} />
+                                            <View style={styles.modalStatDivider} />
                                             <View style={styles.modalStatItem}>
-                                                <Text style={[styles.modalStatLabel, { color: colors.sectionHeader }]}>ACTUAL</Text>
-                                                <Text style={[styles.modalStatValue, { color: colors.text }]}>
+                                                <Text style={styles.modalStatLabel}>ACTUAL</Text>
+                                                <Text style={styles.modalStatValue}>
                                                     {selectedTask.elapsedSeconds !== undefined
                                                         ? formatDuration(selectedTask.elapsedSeconds)
                                                         : `${selectedTask.timeSpent !== undefined ? selectedTask.timeSpent : selectedTask.duration} MIN`}
@@ -279,21 +254,13 @@ export default function HistoryScreen({ navigation }) {
             </Modal>
 
             <TouchableOpacity
-                style={[
-                    styles.floatingButton,
-                    {
-                        backgroundColor: selectionMode ? colors.backgroundSecondary : colors.primary,
-                        borderColor: colors.border,
-                        shadowColor: colors.shadow
-                    },
-                    selectionMode && styles.deleteFab
-                ]}
+                style={[styles.floatingButton, selectionMode && styles.deleteFab]}
                 onPress={selectionMode ? handleBulkDelete : () => navigation.navigate('Calendar')}
             >
                 <Feather
                     name={selectionMode ? "trash-2" : "calendar"}
                     size={24}
-                    color={selectionMode ? "#FFFFFF" : colors.onPrimary}
+                    color={selectionMode ? "#FFFFFF" : "#FFFFFF"}
                 />
             </TouchableOpacity>
         </View >
@@ -303,6 +270,7 @@ export default function HistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000',
         paddingTop: 60,
     },
     header: {
@@ -313,12 +281,14 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     headerTitle: {
+        color: '#FFFFFF',
         fontSize: 40,
         fontWeight: '900',
         letterSpacing: 2,
         marginBottom: 5,
     },
     headerSubtitle: {
+        color: '#888888',
         fontSize: 12,
         fontWeight: '600',
         letterSpacing: 4,
@@ -337,9 +307,12 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
+        backgroundColor: '#111111',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
+        borderColor: '#222222',
+        shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 4,
@@ -363,11 +336,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     sectionTitle: {
+        color: '#666666',
         fontSize: 10,
         fontWeight: '900',
         letterSpacing: 2,
     },
     selectAllText: {
+        color: '#FFFFFF',
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 1,
@@ -383,21 +358,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        backgroundColor: '#0A0A0A',
         padding: 20,
         borderRadius: 15,
         marginBottom: 15,
         borderWidth: 1,
+        borderColor: '#111111',
     },
     taskInfo: {
         flex: 1,
     },
     taskNameText: {
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '800',
         letterSpacing: 1,
         marginBottom: 4,
     },
     taskTimeText: {
+        color: '#777777',
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 1,
@@ -406,11 +385,14 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderRadius: 12,
+        backgroundColor: '#111111',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
+        borderColor: '#222222',
     },
     checkmarkText: {
+        color: '#FFFFFF',
         fontSize: 12,
         fontWeight: '900',
     },
@@ -420,12 +402,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     emptyText: {
+        color: '#666666',
         fontSize: 14,
         fontWeight: '700',
         letterSpacing: 2,
         marginBottom: 20,
     },
     emptyHint: {
+        color: '#444444',
         fontSize: 10,
         fontWeight: '600',
         letterSpacing: 1,
@@ -434,6 +418,7 @@ const styles = StyleSheet.create({
     divider: {
         width: 40,
         height: 1,
+        backgroundColor: '#222222',
     },
     deleteActionContainer: {
         justifyContent: 'center',
@@ -442,7 +427,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     deleteAction: {
-        backgroundColor: '#FF3B30', // Keep red for delete
+        backgroundColor: '#ff3b30',
         justifyContent: 'center',
         alignItems: 'center',
         width: 50,
@@ -451,18 +436,21 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Use theme value if possible, else generic overlay
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContent: {
         width: '85%',
+        backgroundColor: '#111111',
         borderRadius: 20,
         padding: 30,
         alignItems: 'center',
         borderWidth: 1,
+        borderColor: '#222222',
     },
     modalTitle: {
+        color: '#FFFFFF',
         fontSize: 24,
         fontWeight: '900',
         marginBottom: 30,
@@ -482,15 +470,18 @@ const styles = StyleSheet.create({
     modalStatDivider: {
         width: 1,
         height: 40,
+        backgroundColor: '#222222',
         marginHorizontal: 20,
     },
     modalStatLabel: {
+        color: '#666666',
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 2,
         marginBottom: 6,
     },
     modalStatValue: {
+        color: '#FFFFFF',
         fontSize: 24,
         fontWeight: '800',
     },
@@ -510,19 +501,22 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
     selectedTaskItem: {
-        // Handled in render
+        borderColor: '#FFFFFF',
+        backgroundColor: '#222222',
     },
     selectedCheckmark: {
-        // Handled in render
+        backgroundColor: '#FFFFFF',
+        borderColor: '#FFFFFF',
     },
     cancelText: {
-        fontSize: 10,
+        color: '#FFFFFF',
         fontWeight: '700',
         letterSpacing: 1,
         marginTop: 10,
     },
     cancelButton: {
         padding: 5,
+        backgroundColor: '#222222',
         borderRadius: 15,
     },
     deleteFab: {
